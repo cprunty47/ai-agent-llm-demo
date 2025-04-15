@@ -1,4 +1,5 @@
 using System;
+using ManagedCuda;
 
 namespace MyConsoleApp
 {
@@ -8,6 +9,9 @@ namespace MyConsoleApp
         {
             Console.WriteLine("Welcome to the AI Prompt Console App!");
             Console.WriteLine("Type 'exit' to quit.");
+
+            var isRunningOnGPU = IsRunningOnGPU();
+            Console.WriteLine($"Running on GPU: {isRunningOnGPU}");
 
             while (true)
             {
@@ -39,6 +43,22 @@ namespace MyConsoleApp
             else
             {
                 return "That's interesting! Tell me more.";
+            }
+        }
+
+        static bool IsRunningOnGPU()
+        {
+            try
+            {
+                // Attempt to create a CUDA context to check for GPU availability
+                using (var cudaContext = new ManagedCuda.CudaContext())
+                {
+                    return true; // GPU is available
+                }
+            }
+            catch
+            {
+                return false; // GPU is not available
             }
         }
     }
