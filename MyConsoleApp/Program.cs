@@ -10,56 +10,23 @@ namespace MyConsoleApp
             Console.WriteLine("Welcome to the AI Prompt Console App!");
             Console.WriteLine("Type 'exit' to quit.");
 
-            var isRunningOnGPU = IsRunningOnGPU();
+            var services = ConfigureServices(new ServiceCollection()).BuildServiceProvider();
+
+            var gpuManager = services.GetRequiredService<IGpuManager>();
+            var isRunningOnGPU = gpuManager.IsRunningOnGPU();
             Console.WriteLine($"Running on GPU: {isRunningOnGPU}");
 
-            while (true)
-            {
-                Console.Write("\nYou: ");
-                string userInput = Console.ReadLine();
-
-                if (userInput?.ToLower() == "exit")
-                {
-                    Console.WriteLine("Goodbye!");
-                    break;
-                }
-
-                string response = GenerateResponse(userInput);
-                Console.WriteLine($"AI: {response}");
-            }
+            var processor = services.GetRequiredService<IProcessor>();
+            processor.Process();
         }
 
-        static string GenerateResponse(string input)
+        private static IServiceCollection ConfigureServices(IServiceCollection services)
         {
-            // Simple response logic (can be expanded)
-            if (string.IsNullOrWhiteSpace(input))
-            {
-                return "I'm here! Feel free to ask me anything.";
-            }
-            else if (input.Contains("hello", StringComparison.OrdinalIgnoreCase))
-            {
-                return "Hello! How can I assist you today?";
-            }
-            else
-            {
-                return "That's interesting! Tell me more.";
-            }
-        }
+            services.AddSingleton<IProcessor, Processor>();
+            services.AddSingleton<IGpuManager, GpuManager>();
+            return services;
+        }   
 
-        static bool IsRunningOnGPU()
-        {
-            try
-            {
-                // Attempt to create a CUDA context to check for GPU availability
-                using (var cudaContext = new ManagedCuda.CudaContext())
-                {
-                    return true; // GPU is available
-                }
-            }
-            catch
-            {
-                return false; // GPU is not available
-            }
-        }
+
     }
 }
