@@ -47,6 +47,10 @@ namespace MyConsoleApp
             {
                 return "When a function is too small, it typically means the function doesn't provide meaningful value - for example, when it just calls the next function in line without adding any logic, validation, or abstraction.";
             }
+            else if (input.Contains("what is bundling", StringComparison.OrdinalIgnoreCase))
+            {
+                return "It's a test driven development concept which relaxes the discipline and allows you to write 50-100 lines of code before you seriously do some organized unit test development.";
+            }
             else
             {
                 return "That's interesting! Tell me more.";
