@@ -1,9 +1,15 @@
 using System;
+using System.Data.SqlClient;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace MyConsoleApp
 {
     public class Processor : IProcessor
     {
+        private static readonly HttpClient httpClient = new HttpClient();
+        
         public void Process()
         {
             // Implementation goes here
@@ -18,15 +24,53 @@ namespace MyConsoleApp
                     break;
                 }
 
-                string response = GenerateResponse(userInput);
+                // Check for simple responses first
+                string simpleResponse = GetSimpleResponse(userInput);
+                string response;
+                
+                if (!string.IsNullOrEmpty(simpleResponse))
+                {
+                    response = simpleResponse;
+                }
+                else
+                {
+                    response = GenerateResponseAsync(userInput).Result;
+                }
+                
                 Console.WriteLine($"AI: {response}");
             }
-
         }
         
-        static string GenerateResponse(string input)
+        static async Task<string> GenerateResponseAsync(string input)
         {
-            // Simple response logic (can be expanded)
+            // Call Azure Web App API
+            try
+            {
+                string azureWebAppUrl = "https://ai-agent-jde-fgducnggfad4ayaw.centralus-01.azurewebsites.net/agent/GenerateTaxResponse";
+                var jsonContent = $@"{{
+                    ""Token"": ""00000000-0000-0000-0000-000000000000"",
+                    ""Prompt"": ""{input}""
+                }}";
+                var response = await httpClient.PostAsync(azureWebAppUrl, 
+                    new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json"));
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    return await response.Content.ReadAsStringAsync();
+                }
+                else
+                {
+                    return "Sorry, I'm having trouble connecting to the service right now.";
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Error connecting to Azure service: {ex.Message}";
+            }
+        }
+
+        static string GetSimpleResponse(string input)
+        {
             if (string.IsNullOrWhiteSpace(input))
             {
                 return "I'm here! Feel free to ask me anything.";
@@ -51,10 +95,8 @@ namespace MyConsoleApp
             {
                 return "It's a test driven development concept which relaxes the discipline and allows you to write 50-100 lines of code before you seriously do some organized unit test development.";
             }
-            else
-            {
-                return "That's interesting! Tell me more.";
-            }
-        }        
+            
+            return null; // No simple response found
+        }
     }
 }
