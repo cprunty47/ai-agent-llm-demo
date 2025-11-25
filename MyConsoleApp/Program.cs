@@ -1,6 +1,7 @@
 using System;
 using ManagedCuda;
 using MyConsoleApp.Builders;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MyConsoleApp
 {
@@ -9,7 +10,7 @@ namespace MyConsoleApp
         static void Main(string[] args)
         {
             Console.WriteLine("Welcome to the AI Prompt Console App!");
-            Console.WriteLine("Type 'exit' to quit.");
+            Console.WriteLine("Type 'exit' to quit, '/switch' to change processor.");
 
             var services = ConfigureServices(new ServiceCollection()).BuildServiceProvider();
 
@@ -23,16 +24,17 @@ namespace MyConsoleApp
         private static IServiceCollection ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IGpuManager, GpuManager>();
-            // Use UncleBobProcessor by default
-            services.AddSingleton<IProcessor, UncleBobProcessor>();
+            services.AddSingleton<UncleBobProcessor>();
+            services.AddSingleton<AzureProcessor>();
+            services.AddSingleton<IProcessor, AzureProcessor>(); // Default
             return services;
         }   
 
         static void Process(IServiceProvider services)
         {
-            var processor = services.GetRequiredService<IProcessor>();
+            IProcessor currentProcessor = services.GetRequiredService<IProcessor>();
+            Console.WriteLine($"Using: {currentProcessor.GetType().Name}");
 
-            // Implementation goes here
             while (true)
             {
                 Console.Write("\nYou: ");
@@ -44,13 +46,23 @@ namespace MyConsoleApp
                     break;
                 }
 
-                // Check for Uncle Bob responses
-                string response = processor.GetResponse(userInput);
+                if (userInput?.ToLower() == "/switch")
+                {
+                    if (currentProcessor is UncleBobProcessor)
+                    {
+                        currentProcessor = services.GetRequiredService<AzureProcessor>();
+                    }
+                    else
+                    {
+                        currentProcessor = services.GetRequiredService<UncleBobProcessor>();
+                    }
+                    Console.WriteLine($"Switched to: {currentProcessor.GetType().Name}");
+                    continue;
+                }
 
+                string response = currentProcessor.GetResponse(userInput);
                 Console.WriteLine($"AI: {response}");
             }
         }
-
-
     }
 }
