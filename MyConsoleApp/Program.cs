@@ -1,5 +1,6 @@
 using System;
 using ManagedCuda;
+using MyConsoleApp.Builders;
 
 namespace MyConsoleApp
 {
@@ -16,16 +17,39 @@ namespace MyConsoleApp
             var isRunningOnGPU = gpuManager.IsRunningOnGPU();
             Console.WriteLine($"Running on GPU: {isRunningOnGPU}");
 
-            var processor = services.GetRequiredService<IProcessor>();
-            processor.Process();
+            Process(services);
         }
 
         private static IServiceCollection ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IProcessor, Processor>();
             services.AddSingleton<IGpuManager, GpuManager>();
+            // Use UncleBobProcessor by default
+            services.AddSingleton<IProcessor, UncleBobProcessor>();
             return services;
         }   
+
+        static void Process(IServiceProvider services)
+        {
+            var processor = services.GetRequiredService<IProcessor>();
+
+            // Implementation goes here
+            while (true)
+            {
+                Console.Write("\nYou: ");
+                string userInput = Console.ReadLine();
+
+                if (userInput?.ToLower() == "exit")
+                {
+                    Console.WriteLine("Goodbye!");
+                    break;
+                }
+
+                // Check for Uncle Bob responses
+                string response = processor.GetResponse(userInput);
+
+                Console.WriteLine($"AI: {response}");
+            }
+        }
 
 
     }

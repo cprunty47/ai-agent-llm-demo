@@ -2,6 +2,6 @@ namespace MyConsoleApp.Interfaces
 {
     public interface IProcessor
     {
-        void Process();
+        string GetResponse(string userInput);
     }
 }
