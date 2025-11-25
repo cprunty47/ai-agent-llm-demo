@@ -2,6 +2,7 @@ using System;
 using System.Data.SqlClient;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MyConsoleApp.Builders
@@ -25,7 +26,28 @@ namespace MyConsoleApp.Builders
                 
                 if (response.IsSuccessStatusCode)
                 {
-                    return response.Content.ReadAsStringAsync().Result;
+                    string responseContent = response.Content.ReadAsStringAsync().Result;
+                    
+                    // Parse JSON response to extract the actual message
+                    try
+                    {
+                        using JsonDocument doc = JsonDocument.Parse(responseContent);
+                        if (doc.RootElement.TryGetProperty("response", out JsonElement responseElement))
+                        {
+                            return responseElement.GetString();
+                        }
+                        else if (doc.RootElement.TryGetProperty("message", out JsonElement messageElement))
+                        {
+                            return messageElement.GetString();
+                        }
+                        // If no specific property found, return the raw content
+                        return responseContent;
+                    }
+                    catch
+                    {
+                        // If parsing fails, return the raw response
+                        return responseContent;
+                    }
                 }
                 else
                 {
