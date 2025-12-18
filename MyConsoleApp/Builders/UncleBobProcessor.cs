@@ -35,6 +35,10 @@ namespace MyConsoleApp.Builders
             {
                 return "It's a test driven development concept which relaxes the discipline and allows you to write 50-100 lines of code before you seriously do some organized unit test development.";
             }
+            else if (input.Contains("AI replace my job", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Details, details, details. AI is really good at some of them, and bad at others. Supervision is essential. You really need to know what you're doing.";
+            }
 
             return "I'm sorry, I don't have a response for that.";
         }
